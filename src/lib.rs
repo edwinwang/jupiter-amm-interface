@@ -2,7 +2,7 @@ use anyhow::{anyhow, Context, Error, Result};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use solana_account_decoder::{UiAccount, UiAccountEncoding};
+use solana_account_decoder::{encode_ui_account, UiAccount, UiAccountEncoding};
 use solana_sdk::clock::Clock;
 use std::collections::HashSet;
 
@@ -248,7 +248,7 @@ impl From<KeyedAccount> for KeyedUiAccount {
             account,
             params,
         } = keyed_account;
-        let ui_account = UiAccount::encode(&key, &account, UiAccountEncoding::Base64, None, None);
+        let ui_account = encode_ui_account(&key, &account, UiAccountEncoding::Base64, None, None);
 
         KeyedUiAccount {
             pubkey: key.to_string(),
