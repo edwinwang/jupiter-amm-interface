@@ -106,9 +106,9 @@ pub enum Swap {
         remaining_accounts_info: Option<RemainingAccountsInfo>,
     },
     OneIntro,
-    PumpdotfunWrappedBuy,
-    PumpdotfunWrappedSell,
-    PerpsV2Swap,
+    PumpWrappedBuy,
+    PumpWrappedSell,
+    PerpsV2,
     PerpsV2AddLiquidity,
     PerpsV2RemoveLiquidity,
     MoonshotWrappedBuy,
@@ -189,6 +189,23 @@ pub enum Swap {
     PumpWrappedSellV3,
     PumpSwapBuyV3,
     PumpSwapSellV3,
+    JupiterLendDeposit,
+    JupiterLendRedeem,
+    DefiTuna {
+        a_to_b: bool,
+        remaining_accounts_info: Option<RemainingAccountsInfo>,
+    },
+    AlphaQ {
+        a_to_b: bool,
+    },
+    RaydiumV2,
+    SarosDlmm {
+        swap_for_y: bool,
+    },
+    Futarchy {
+        side: Side,
+    },
+    MeteoraDammV2WithRemainingAccounts,
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Copy, Clone, PartialEq, Eq, Debug)]
