@@ -150,6 +150,32 @@ pub trait Amm {
     fn key(&self) -> Pubkey;
     /// The mints that can be traded
     fn get_reserve_mints(&self) -> Vec<Pubkey>;
+
+    /// Returns all trading pairs this AMM supports
+    /// Default implementation: returns all pairwise combinations of reserve_mints
+    /// For 2-token AMM: returns 1 pair
+    /// For N-token AMM: returns N*(N-1)/2 pairs
+    /// Pairs are normalized (smaller pubkey first) for consistent indexing
+    fn get_supported_pairs(&self) -> Vec<(Pubkey, Pubkey)> {
+        let mints = self.get_reserve_mints();
+        if mints.len() < 2 {
+            return vec![];
+        }
+
+        let mut pairs = Vec::new();
+        for i in 0..mints.len() {
+            for j in (i + 1)..mints.len() {
+                // Normalize: smaller pubkey first
+                if mints[i] < mints[j] {
+                    pairs.push((mints[i], mints[j]));
+                } else {
+                    pairs.push((mints[j], mints[i]));
+                }
+            }
+        }
+        pairs
+    }
+
     /// The accounts necessary to produce a quote
     fn get_accounts_to_update(&self) -> Vec<Pubkey>;
     /// Picks necessary accounts to update it's internal state
