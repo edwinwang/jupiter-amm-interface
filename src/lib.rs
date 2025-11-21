@@ -180,7 +180,7 @@ pub trait Amm {
     fn get_accounts_to_update(&self) -> Vec<Pubkey>;
     /// Picks necessary accounts to update it's internal state
     /// Heavy deserialization and precomputation caching should be done in this function
-    fn update(&mut self, account_map: &AccountMap) -> Result<()>;
+    fn update(&self, account_map: &AccountMap) -> Result<()>;
 
     fn quote(&self, quote_params: &QuoteParams) -> Result<Quote>;
 
