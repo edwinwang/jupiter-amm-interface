@@ -7,6 +7,17 @@ pub enum Side {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, PartialEq)]
+pub enum CandidateSwap {
+    HumidiFi {
+        swap_id: u64,
+        is_base_to_quote: bool,
+    },
+    TesseraV {
+        side: Side,
+    },
+}
+
+#[derive(BorshSerialize, BorshDeserialize, Clone, Debug, PartialEq)]
 pub enum Swap {
     Saber,
     SaberAddDecimalsDeposit,
@@ -206,24 +217,53 @@ pub enum Swap {
         side: Side,
     },
     MeteoraDammV2WithRemainingAccounts,
+    Obsidian,
+    WhaleStreet {
+        side: Side,
+    },
+    DynamicV1 {
+        candidate_swaps: Vec<CandidateSwap>,
+    },
+    PumpWrappedBuyV4,
+    PumpWrappedSellV4,
+    CarrotIssue,
+    CarrotRedeem,
+    Manifest {
+        side: Side,
+    },
+    BisonFi {
+        a_to_b: bool,
+    },
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Copy, Clone, PartialEq, Eq, Debug)]
 pub enum AccountsType {
     TransferHookA,
     TransferHookB,
-    // TransferHookReward,
-    // TransferHookInput,
-    // TransferHookIntermediate,
-    // TransferHookOutput,
-    //TickArray,
-    //TickArrayOne,
-    //TickArrayTwo,
+    TransferHookReward,
+    TransferHookInput,
+    TransferHookIntermediate,
+    TransferHookOutput,
+    SupplementalTickArrays,
+    SupplementalTickArraysOne,
+    SupplementalTickArraysTwo,
 }
 
-#[derive(BorshSerialize, BorshDeserialize, Clone, Debug, PartialEq)]
+#[derive(BorshSerialize, BorshDeserialize, Copy, Clone, PartialEq, Eq, Debug)]
+pub enum DefiTunaAccountsType {
+    TransferHookA,
+    TransferHookB,
+    TransferHookInput,
+    TransferHookIntermediate,
+    TransferHookOutput,
+    SupplementalTickArrays,
+    SupplementalTickArraysOne,
+    SupplementalTickArraysTwo,
+}
+
+#[derive(BorshSerialize, BorshDeserialize, Clone, Copy, Debug, PartialEq)]
 pub struct RemainingAccountsSlice {
-    pub accounts_type: AccountsType,
+    pub accounts_type: u8,
     pub length: u8,
 }
 
