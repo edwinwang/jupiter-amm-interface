@@ -244,7 +244,7 @@ pub trait Amm {
         true
     }
 
-    fn on_mint_update(&mut self, _update: &MintUpdate) -> Result<()> {
+    fn on_mint_update(&self, _update: &MintUpdate) -> Result<()> {
         Ok(())
     }
 }
