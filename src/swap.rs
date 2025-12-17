@@ -15,6 +15,10 @@ pub enum CandidateSwap {
     TesseraV {
         side: Side,
     },
+    HumidiFiV2 {
+        swap_id: u64,
+        is_base_to_quote: bool,
+    },
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, PartialEq)]
@@ -233,6 +237,10 @@ pub enum Swap {
     },
     BisonFi {
         a_to_b: bool,
+    },
+    HumidiFiV2 {
+        swap_id: u64,
+        is_base_to_quote: bool,
     },
 }
 
