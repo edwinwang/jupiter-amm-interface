@@ -116,23 +116,46 @@ pub enum AmmUserSetup {
     SerumDexOpenOrdersSetup { market: Pubkey, program_id: Pubkey },
 }
 
-pub type AccountMap = HashMap<Pubkey, Arc<Account>, ahash::RandomState>;
+/// AccountMap trait - 账户数据访问抽象
+///
+/// 设计说明：
+/// - 之前是 `type AccountMap = HashMap<Pubkey, Arc<Account>>`
+/// - 现在改为 trait，允许不同的存储实现（HashMap、DashMap 等）
+/// - AMM 的 update 方法签名改为 `fn update(&self, account_map: &dyn AccountMap)`
+pub trait AccountMap: Send + Sync {
+    /// 获取账户数据
+    fn get(&self, address: &Pubkey) -> Option<Arc<Account>>;
+}
 
-pub fn try_get_account_data<'a>(account_map: &'a AccountMap, address: &Pubkey) -> Result<&'a [u8]> {
+/// HashMap 实现 AccountMap trait（兼容旧代码）
+impl AccountMap for HashMap<Pubkey, Arc<Account>, ahash::RandomState> {
+    fn get(&self, address: &Pubkey) -> Option<Arc<Account>> {
+        HashMap::get(self, address).cloned()
+    }
+}
+
+/// 获取账户（返回 Arc<Account>）
+///
+/// 使用方式：
+/// ```ignore
+/// let account = try_get_account_data(account_map, &address)?;
+/// let data: &[u8] = &account.data;  // 零拷贝访问
+/// ```
+pub fn try_get_account_data(account_map: &dyn AccountMap, address: &Pubkey) -> Result<Arc<Account>> {
     account_map
         .get(address)
-        .map(|account| account.data.as_slice())
         .with_context(|| format!("Could not find address: {address}"))
 }
 
-pub fn try_get_account_data_and_owner<'a>(
-    account_map: &'a AccountMap,
+/// 获取账户数据和 owner
+pub fn try_get_account_data_and_owner(
+    account_map: &dyn AccountMap,
     address: &Pubkey,
-) -> Result<(&'a [u8], &'a Pubkey)> {
+) -> Result<(Arc<Account>, Pubkey)> {
     let account = account_map
         .get(address)
         .with_context(|| format!("Could not find address: {address}"))?;
-    Ok((account.data.as_slice(), &account.owner))
+    Ok((account.clone(), account.owner))
 }
 
 pub struct AmmContext {
@@ -180,7 +203,7 @@ pub trait Amm {
     fn get_accounts_to_update(&self) -> Vec<Pubkey>;
     /// Picks necessary accounts to update it's internal state
     /// Heavy deserialization and precomputation caching should be done in this function
-    fn update(&self, account_map: &AccountMap) -> Result<()>;
+    fn update(&self, account_map: &dyn AccountMap) -> Result<()>;
 
     fn quote(&self, quote_params: &QuoteParams) -> Result<Quote>;
 
