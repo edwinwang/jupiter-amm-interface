@@ -134,6 +134,13 @@ impl AccountMap for HashMap<Pubkey, Arc<Account>, ahash::RandomState> {
     }
 }
 
+/// DashMap 实现 AccountMap trait（中心化存储）
+impl AccountMap for dashmap::DashMap<Pubkey, Arc<Account>> {
+    fn get(&self, address: &Pubkey) -> Option<Arc<Account>> {
+        self.get(address).map(|entry| entry.value().clone())
+    }
+}
+
 /// 获取账户（返回 Arc<Account>）
 ///
 /// 使用方式：
@@ -163,7 +170,7 @@ pub struct AmmContext {
 }
 
 pub trait Amm {
-    async fn from_keyed_account(keyed_account: &KeyedAccount, amm_context: &AmmContext) -> Result<Self>
+    fn from_keyed_account(keyed_account: &KeyedAccount, amm_context: &AmmContext) -> impl std::future::Future<Output = Result<Self>> + Send
     where
         Self: Sized;
     /// A human readable label of the underlying DEX

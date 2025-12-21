@@ -35,6 +35,9 @@ path = "src/lib.rs"
 [dependencies.ahash]
 version = "0.8"
 
+[dependencies.dashmap]
+version = "5"
+
 [dependencies.anyhow]
 version = "1"
 
