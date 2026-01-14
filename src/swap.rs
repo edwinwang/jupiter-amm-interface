@@ -242,6 +242,16 @@ pub enum Swap {
         swap_id: u64,
         is_base_to_quote: bool,
     },
+    PerenaStar {
+        is_mint: bool,
+    },
+    JupiterRfqV2 {
+        side: Side,
+        fill_data: Vec<u8>,
+    },
+    GoonFiV2 {
+        is_bid: bool,
+    },
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Copy, Clone, PartialEq, Eq, Debug)]
