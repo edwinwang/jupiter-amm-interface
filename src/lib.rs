@@ -2,21 +2,22 @@ use anyhow::{anyhow, Context, Error, Result};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use solana_account::Account;
 use solana_account_decoder::{encode_ui_account, UiAccount, UiAccountEncoding};
-use solana_sdk::clock::Clock;
+use solana_clock::Clock;
+use solana_instruction::AccountMeta;
+use solana_pubkey::Pubkey;
 use std::collections::HashSet;
 
-use std::sync::atomic::{AtomicI64, AtomicU64};
+use std::sync::atomic::{AtomicI64, AtomicU64, Ordering};
 use std::sync::Arc;
 use std::{collections::HashMap, convert::TryFrom, str::FromStr};
 mod custom_serde;
 mod swap;
 use custom_serde::field_as_string;
-pub use swap::{Side, Swap, RemainingAccountsInfo};
+pub use swap::{AccountsType, CandidateSwap, RemainingAccountsInfo, RemainingAccountsSlice, Side, Swap};
 pub use borsh::BorshSerialize;
 
-/// An abstraction in order to share reserve mints and necessary data
-use solana_sdk::{account::Account, instruction::AccountMeta, pubkey::Pubkey};
 use spl_token_2022;
 
 /// Mint 属性更新事件
@@ -58,18 +59,24 @@ impl FromStr for SwapMode {
     }
 }
 
+#[derive(Default, Clone, Copy, Debug, PartialEq)]
+pub enum FeeMode {
+    #[default]
+    Normal,
+    Ultra,
+}
+
 #[derive(Debug)]
 pub struct QuoteParams {
     pub amount: u64,
     pub input_mint: Pubkey,
     pub output_mint: Pubkey,
     pub swap_mode: SwapMode,
+    pub fee_mode: FeeMode,
 }
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct Quote {
-    pub min_in_amount: Option<u64>,
-    pub min_out_amount: Option<u64>,
     pub in_amount: u64,
     pub out_amount: u64,
     pub fee_amount: u64,
@@ -89,7 +96,10 @@ pub struct SwapParams<'a, 'b> {
     pub destination_token_account: Pubkey,
     /// This can be the user or the program authority over the source_token_account.
     pub token_transfer_authority: Pubkey,
-    pub open_order_address: Option<Pubkey>,
+    /// The actual user doing the swap.
+    pub user: Pubkey,
+    /// The payer for extra SOL that is required for needed accounts in the swap.
+    pub payer: Pubkey,
     pub quote_mint_to_referrer: Option<&'a QuoteMintToReferrer>,
     pub jupiter_program_id: &'b Pubkey,
     /// Instead of returning the relevant Err, replace dynamic accounts with the default Pubkey
@@ -165,6 +175,7 @@ pub fn try_get_account_data_and_owner(
     Ok((account.clone(), account.owner))
 }
 
+#[derive(Default)]
 pub struct AmmContext {
     pub clock_ref: ClockRef,
 }
@@ -237,10 +248,6 @@ pub trait Amm {
     // Indicates that whether ExactOut mode is supported
     fn supports_exact_out(&self) -> bool {
         false
-    }
-
-    fn get_user_setup(&self) -> Option<AmmUserSetup> {
-        None
     }
 
     fn clone_amm(&self) -> Box<dyn Amm + Send + Sync>;
@@ -382,7 +389,7 @@ impl TryFrom<KeyedUiAccount> for KeyedAccount {
         } = keyed_ui_account;
         let account = ui_account
             .decode()
-            .unwrap_or_else(|| panic!("Failed to decode ui_account for {}", pubkey));
+            .unwrap_or_else(|| panic!("Failed to decode ui_account for {pubkey}"));
 
         Ok(KeyedAccount {
             key: Pubkey::from_str(&pubkey)?,
@@ -405,20 +412,14 @@ pub struct ClockRef {
 
 impl ClockRef {
     pub fn update(&self, clock: Clock) {
-        self.epoch
-            .store(clock.epoch, std::sync::atomic::Ordering::Relaxed);
-        self.slot
-            .store(clock.slot, std::sync::atomic::Ordering::Relaxed);
+        self.epoch.store(clock.epoch, Ordering::Relaxed);
+        self.slot.store(clock.slot, Ordering::Relaxed);
         self.unix_timestamp
-            .store(clock.unix_timestamp, std::sync::atomic::Ordering::Relaxed);
-        self.epoch_start_timestamp.store(
-            clock.epoch_start_timestamp,
-            std::sync::atomic::Ordering::Relaxed,
-        );
-        self.leader_schedule_epoch.store(
-            clock.leader_schedule_epoch,
-            std::sync::atomic::Ordering::Relaxed,
-        );
+            .store(clock.unix_timestamp, Ordering::Relaxed);
+        self.epoch_start_timestamp
+            .store(clock.epoch_start_timestamp, Ordering::Relaxed);
+        self.leader_schedule_epoch
+            .store(clock.leader_schedule_epoch, Ordering::Relaxed);
     }
 }
 
@@ -437,7 +438,7 @@ impl From<Clock> for ClockRef {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use solana_sdk::pubkey;
+    use solana_pubkey::pubkey;
 
     #[test]
     fn test_market_deserialization() {
