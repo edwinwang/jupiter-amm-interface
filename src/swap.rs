@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use borsh::{BorshDeserialize, BorshSerialize};
 
 #[derive(BorshSerialize, BorshDeserialize, Copy, Clone, Debug, PartialEq)]
@@ -27,21 +28,11 @@ pub enum Swap {
     SaberAddDecimalsDeposit,
     SaberAddDecimalsWithdraw,
     TokenSwap,
-    Sencha,
-    Step,
-    Cropper,
     Raydium,
     Crema {
         a_to_b: bool,
     },
-    Lifinity,
     Mercurial,
-    Cykura,
-    Serum {
-        side: Side,
-    },
-    MarinadeDeposit,
-    MarinadeUnstake,
     Aldrin {
         side: Side,
     },
@@ -55,39 +46,17 @@ pub enum Swap {
         x_to_y: bool,
     },
     Meteora,
-    GooseFX,
-    DeltaFi {
-        stable: bool,
-    },
-    Balansol,
     MarcoPolo {
         x_to_y: bool,
     },
-    Dradex {
-        side: Side,
-    },
     LifinityV2,
     RaydiumClmm,
-    Openbook {
-        side: Side,
-    },
     Phoenix {
         side: Side,
-    },
-    Symmetry {
-        from_token_id: u64,
-        to_token_id: u64,
     },
     TokenSwapV2,
     HeliumTreasuryManagementRedeemV0,
     StakeDexStakeWrappedSol,
-    StakeDexSwapViaStake {
-        bridge_stake_seed: u32,
-    },
-    GooseFXV2,
-    Perps,
-    PerpsAddLiquidity,
-    PerpsRemoveLiquidity,
     MeteoraDlmm,
     OpenBookV2 {
         side: Side,
@@ -95,11 +64,6 @@ pub enum Swap {
     RaydiumClmmV2,
     StakeDexPrefundWithdrawStakeAndDepositStake {
         bridge_stake_seed: u32,
-    },
-    Clone {
-        pool_index: u8,
-        quantity_is_input: bool,
-        quantity_is_collateral: bool,
     },
     SanctumS {
         src_lst_value_calc_accs: u8,
@@ -133,10 +97,6 @@ pub enum Swap {
     Obric {
         x_to_y: bool,
     },
-    FoxBuyFromEstimatedCost,
-    FoxClaimPartial {
-        is_y: bool,
-    },
     SolFi {
         is_quote_to_base: bool,
     },
@@ -149,7 +109,7 @@ pub enum Swap {
     DaosFunSell,
     ZeroFi,
     StakeDexWithdrawWrappedSol,
-    VirtualsBuy,    
+    VirtualsBuy,
     VirtualsSell,
     Perena {
         in_index: u8,
@@ -288,4 +248,30 @@ pub struct RemainingAccountsSlice {
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, PartialEq)]
 pub struct RemainingAccountsInfo {
     pub slices: Vec<RemainingAccountsSlice>,
+}
+
+impl TryInto<CandidateSwap> for Swap {
+    type Error = anyhow::Error;
+
+    fn try_into(self) -> Result<CandidateSwap, Self::Error> {
+        let candidate_swap = match self {
+            Swap::HumidiFi {
+                swap_id,
+                is_base_to_quote,
+            } => CandidateSwap::HumidiFi {
+                swap_id,
+                is_base_to_quote,
+            },
+            Swap::TesseraV { side } => CandidateSwap::TesseraV { side },
+            Swap::HumidiFiV2 {
+                swap_id,
+                is_base_to_quote,
+            } => CandidateSwap::HumidiFiV2 {
+                swap_id,
+                is_base_to_quote,
+            },
+            _ => return Err(anyhow!("Swap {self:?} is not a valid candidate swap")),
+        };
+        Ok(candidate_swap)
+    }
 }
