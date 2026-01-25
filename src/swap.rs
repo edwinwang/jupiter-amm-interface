@@ -253,6 +253,9 @@ pub enum Swap {
     GoonFiV2 {
         is_bid: bool,
     },
+    Scorch {
+        swap_id: u128,
+    },
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Copy, Clone, PartialEq, Eq, Debug)]
