@@ -228,6 +228,7 @@ pub enum Swap {
     },
     DynamicV1 {
         candidate_swaps: Vec<CandidateSwap>,
+        best_position: Option<u8>,
     },
     PumpWrappedBuyV4,
     PumpWrappedSellV4,
@@ -255,6 +256,19 @@ pub enum Swap {
     },
     Scorch {
         swap_id: u128,
+    },
+    VaultLiquidUnstake {
+        lst_amounts: [u64; 5],
+        seed: u64,
+    },
+    XOrca,
+    Quantum {
+        side: Side,
+    },
+    WhaleStreetV2 {
+        side: Side,
+        auth_amount_in: u64,
+        auth: u64,
     },
 }
 
