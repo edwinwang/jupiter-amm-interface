@@ -270,6 +270,22 @@ pub enum Swap {
         auth_amount_in: u64,
         auth: u64,
     },
+    Unknown127_riptK,
+    Unknown128_runnr,
+    Unknown129_reserved,
+    Unknown130_omnix,
+    Unknown131_reserved,
+    Hylo {
+        sub_type: u8,
+    },
+    Unknown133_reserved,
+    Unknown134_vVoLT,
+    Unknown135_reserved,
+    Unknown136_BQEJZ,
+    Unknown137_reserved,
+    ScaleAmm,
+    Unknown139_reserved,
+    ScaleVmm,
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Copy, Clone, PartialEq, Eq, Debug)]
