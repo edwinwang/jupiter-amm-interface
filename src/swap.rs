@@ -286,6 +286,9 @@ pub enum Swap {
     ScaleAmm,
     Unknown139_reserved,
     ScaleVmm,
+    BisonFiV3 {
+        a_to_b: bool,
+    },
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Copy, Clone, PartialEq, Eq, Debug)]
