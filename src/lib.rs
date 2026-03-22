@@ -15,7 +15,7 @@ use std::{collections::HashMap, convert::TryFrom, str::FromStr};
 mod custom_serde;
 mod swap;
 use custom_serde::field_as_string;
-pub use swap::{AccountsType, CandidateSwap, RemainingAccountsInfo, RemainingAccountsSlice, Side, Swap};
+pub use swap::{AccountsType, CandidateSwap, HyloSwapType, RemainingAccountsInfo, RemainingAccountsSlice, Side, Swap};
 pub use borsh::BorshSerialize;
 
 use spl_token_2022;

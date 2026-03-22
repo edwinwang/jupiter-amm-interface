@@ -7,6 +7,18 @@ pub enum Side {
     Ask,
 }
 
+#[derive(BorshSerialize, BorshDeserialize, Copy, Clone, Debug, PartialEq)]
+pub enum HyloSwapType {
+    MintStable,
+    RedeemStable,
+    MintLever,
+    RedeemLever,
+    SwapStableToLever,
+    SwapLeverToStable,
+    StabilityPoolDeposit,
+    StabilityPoolWithdraw,
+}
+
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, PartialEq)]
 pub enum CandidateSwap {
     HumidiFi {
@@ -270,23 +282,34 @@ pub enum Swap {
         auth_amount_in: u64,
         auth: u64,
     },
-    Unknown127_riptK,
-    Unknown128_runnr,
-    Unknown129_reserved,
-    Unknown130_omnix,
-    Unknown131_reserved,
-    Hylo {
-        sub_type: u8,
+    Riptide {
+        amount_is_token_a: bool,
     },
-    Unknown133_reserved,
-    Unknown134_vVoLT,
-    Unknown135_reserved,
-    Unknown136_BQEJZ,
-    Unknown137_reserved,
-    ScaleAmm,
-    Unknown139_reserved,
-    ScaleVmm,
-    BisonFiV3 {
+    RunnerRodeo,
+    TaurusFi {
+        is_base_in: bool,
+    },
+    Omnipair,
+    MSwap,
+    Hylo {
+        swap_type: HyloSwapType,
+    },
+    VoltrDeposit,
+    VoltrWithdraw,
+    SanctumSV2 {
+        src_lst_value_calc_accs: u8,
+        dst_lst_value_calc_accs: u8,
+        src_lst_index: u32,
+        dst_lst_index: u32,
+    },
+    LemmingsFi {
+        is_base_in: bool,
+    },
+    ScaleVmmBuy,
+    ScaleVmmSell,
+    ScaleAmmBuy,
+    ScaleAmmSell,
+    BisonFiV2 {
         a_to_b: bool,
     },
 }
