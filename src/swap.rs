@@ -35,6 +35,12 @@ pub enum CandidateSwap {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, PartialEq)]
+pub struct CandidateSwapWithBps {
+    pub candidate_swap: CandidateSwap,
+    pub bps: u16,
+}
+
+#[derive(BorshSerialize, BorshDeserialize, Clone, Debug, PartialEq)]
 pub enum Swap {
     Saber,
     SaberAddDecimalsDeposit,
@@ -311,6 +317,24 @@ pub enum Swap {
     ScaleAmmSell,
     BisonFiV2 {
         a_to_b: bool,
+    },
+    Trends,
+    HumaDeposit,
+    HumaInstantWithdraw,
+    Kipseli {
+        is_base_to_quote: bool,
+    },
+    DynamicV2 {
+        candidate_swaps: Vec<CandidateSwapWithBps>,
+        max_split_quote_calls: u8,
+        max_split_candidates: u8,
+    },
+    PumpSwapBuyV3WithCashbackClaim,
+    PumpSwapSellV3WithCashbackClaim,
+    PumpWrappedBuyV4WithCashbackClaim,
+    PumpWrappedSellV4WithCashbackClaim,
+    GoonFiV3 {
+        is_bid: bool,
     },
 }
 
