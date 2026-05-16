@@ -126,6 +126,15 @@ pub enum AmmUserSetup {
     SerumDexOpenOrdersSetup { market: Pubkey, program_id: Pubkey },
 }
 
+/// Result of AMM update() call
+#[derive(Debug, Clone, Default)]
+pub struct UpdateResult {
+    /// Whether the set of accounts needed by this AMM has changed
+    /// (e.g., CLMM tick array boundary crossing, DLMM bin array shift)
+    /// When true, the caller should re-fetch get_accounts_to_update() and reconcile subscriptions
+    pub accounts_changed: bool,
+}
+
 /// AccountMap trait - 账户数据访问抽象
 ///
 /// 设计说明：
@@ -221,7 +230,10 @@ pub trait Amm {
     fn get_accounts_to_update(&self) -> Vec<Pubkey>;
     /// Picks necessary accounts to update it's internal state
     /// Heavy deserialization and precomputation caching should be done in this function
-    fn update(&self, account_map: &dyn AccountMap) -> Result<()>;
+    ///
+    /// Returns UpdateResult indicating whether dynamic accounts changed
+    /// (e.g., tick array boundary crossing in CLMM)
+    fn update(&self, account_map: &dyn AccountMap) -> Result<UpdateResult>;
 
     fn quote(&self, quote_params: &QuoteParams) -> Result<Quote>;
 
