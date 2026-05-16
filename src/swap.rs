@@ -336,6 +336,13 @@ pub enum Swap {
     GoonFiV3 {
         is_bid: bool,
     },
+    PumpWrappedBuyV5 {
+        claim_cashback: bool,
+    },
+    PumpWrappedSellV5 {
+        claim_cashback: bool,
+    },
+    ZeroFiSwapV2,
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Copy, Clone, PartialEq, Eq, Debug)]
