@@ -189,6 +189,17 @@ pub struct AmmContext {
     pub clock_ref: ClockRef,
 }
 
+/// 暗池价格阈值闸的"触发价探针"：某 AMM 当前的双向边际价。
+///
+/// `fwd` = `get_reserve_mints()[0] → [1]` 方向的边际价；`rev` = 反方向。
+/// 单 mid 池 `rev` 为 `fwd` 的倒数；做市商型（独立 bid/ask）两者独立移动。
+/// 闸把 `fwd`、`rev` 各与"上次触发价"比，任一腿移动超过阈值即放行套利搜索。
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TriggerPriceProbe {
+    pub fwd: f64,
+    pub rev: f64,
+}
+
 pub trait Amm {
     fn from_keyed_account(keyed_account: &KeyedAccount, amm_context: &AmmContext) -> impl std::future::Future<Output = Result<Self>> + Send
     where
@@ -295,6 +306,15 @@ pub trait Amm {
 
     fn on_mint_update(&self, _update: &MintUpdate) -> Result<()> {
         Ok(())
+    }
+
+    /// 暗池价格阈值闸的取价钩子。返回该 AMM 当前的双向边际价探针。
+    ///
+    /// 默认返回 `None` —— 调用方据此 fallback 到 `quote()` 的 marginal-eval。
+    /// 仅"暗池"型（价格写在账户、做市商每 slot 重写）且能零成本读出价格中心标量者
+    /// （Class 1）才 override；其余（Class 2）保持默认走 marginal-eval。
+    fn trigger_price(&self) -> Option<TriggerPriceProbe> {
+        None
     }
 }
 
