@@ -38,6 +38,12 @@ pub enum MintUpdate {
         mint: Pubkey,
         new_supply: u64,
     },
+    /// Token-2022 状态变更 (paused / transfer hook)
+    Token2022Status {
+        mint: Pubkey,
+        paused: bool,
+        has_transfer_hook: bool,
+    },
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Clone, Copy, Default, Debug)]
