@@ -343,6 +343,15 @@ pub enum Swap {
         claim_cashback: bool,
     },
     ZeroFiSwapV2,
+    BisonFiPredict {
+        side: Side,
+        is_buy: bool,
+    },
+    ByrealDynamicV3,
+    Flux {
+        swap_id: u64,
+        base_to_quote: bool,
+    },
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Copy, Clone, PartialEq, Eq, Debug)]
