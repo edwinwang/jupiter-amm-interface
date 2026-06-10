@@ -322,6 +322,37 @@ pub trait Amm {
     fn trigger_price(&self) -> Option<TriggerPriceProbe> {
         None
     }
+
+    // ── 池子属性自描述（mistbot review_fable D-1：替代调用方中心化 label 字符串名单）──
+    // 原则：一个池子的属性声明应与它的实现同文件。中心名单的事故类（一次"格式 refactor"
+    // 顺手蒸发一行、靠没人跑的测试当唯一防线）从构造上消除——改某池属性只能改它自己的文件。
+    // 方向安全性：忘记 override 的新实现拿默认值 = 多触发/不抑制/标准缓存，吵但不漏不错。
+
+    /// 被动模式：true = 该池的账户更新**不**触发套利发现（只作为路径一环被动参与计算）。
+    /// 适用：多池合成型（单实例聚合 N 子池，任一子池更新全量重算代价过高）、
+    /// 价格变化极慢的 stable/LST 池。
+    fn is_passive(&self) -> bool {
+        false
+    }
+
+    /// 暗池：价格写在账户、做市商每 slot 重写保鲜的池子。true = 纳入价格阈值闸
+    /// （边际价对比上次触发价，移动 < 阈值不发套利搜索）。
+    /// 分离 oracle 型（oracle 账户走 skip_arbitrage_accounts）不算暗池。
+    fn is_darkpool(&self) -> bool {
+        false
+    }
+
+    /// quote() 是否直接依赖 clock（slot/timestamp）：true = 账户不变报价也会随时间漂移，
+    /// 调用方的 quote 缓存须用基于 slot 的 TTL 过期；false = 账户不变结果不变，版本失效即可。
+    fn is_clock_dependent(&self) -> bool {
+        false
+    }
+
+    /// 不应触发套利发现的账户（oracle/config 类：更新只刷新状态，不值得搜套利）。
+    /// 注册期由调用方查询一次并登记。默认空。
+    fn skip_arbitrage_accounts(&self) -> Vec<Pubkey> {
+        Vec::new()
+    }
 }
 
 impl Clone for Box<dyn Amm + Send + Sync> {
