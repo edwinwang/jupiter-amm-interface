@@ -245,6 +245,26 @@ pub trait Amm {
 
     /// The accounts necessary to produce a quote
     fn get_accounts_to_update(&self) -> Vec<Pubkey>;
+
+    /// ⚠️ CONTRACT — READ BEFORE OVERRIDING: any key returned here will STOP triggering this AMM's
+    /// `update()` (re-quote) when it changes. The host still mirrors the account (its data stays
+    /// fresh in the store), but a change to it will NOT refresh this AMM's quote until some *other*
+    /// account — one NOT in this list — triggers an update and pulls the whole account set in.
+    /// Returning a key whose change actually matters to your quote, with no other account that
+    /// reliably triggers afterwards, means a stale quote. Only return keys you are sure of.
+    ///
+    /// Subset of `get_accounts_to_update()` whose updates can be safely skipped as a re-quote
+    /// trigger. Two cases qualify: (a) the change does not move this AMM's quote — e.g. a shared
+    /// dynamic-vault state where a swap moves the totals but not the per-share price (lossless);
+    /// or (b) the AMM is low-value/passive and tolerates a stale quote until one of its own
+    /// accounts changes, in order to skip a high-fanout shared account's broadcast recompute
+    /// (lossy but acceptable). Default empty. Returned keys MUST be a subset of
+    /// `get_accounts_to_update()` and exclusive to this AMM type. The host keeps the account
+    /// mirrored either way; it only suppresses the redundant recomputation.
+    fn accounts_no_trigger(&self) -> Vec<Pubkey> {
+        Vec::new()
+    }
+
     /// Picks necessary accounts to update it's internal state
     /// Heavy deserialization and precomputation caching should be done in this function
     ///
