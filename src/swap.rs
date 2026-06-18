@@ -352,6 +352,13 @@ pub enum Swap {
         swap_id: u64,
         base_to_quote: bool,
     },
+    VaultLiquidSellLst,
+    VaultLiquidBuyLst {
+        lst_amount: u64,
+    },
+    KipseliV2 {
+        is_base_to_quote: bool,
+    },
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Copy, Clone, PartialEq, Eq, Debug)]
