@@ -359,6 +359,13 @@ pub enum Swap {
     KipseliV2 {
         is_base_to_quote: bool,
     },
+    // tag 161 — Deriverse (DRVSpZ2YUYYKgZP8XtLhAGtT1zYSCKzeHfb4DgRnrgqD)
+    // 必须紧跟 KipseliV2(=160)：Borsh 判别号 = 声明顺序 = 链上 tag 161。
+    // 字段布局取自 Deriverse 官方 Jupiter 集成的扩展 Swap enum。
+    Deriverse {
+        side: Side,
+        instr_id: u32,
+    },
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Copy, Clone, PartialEq, Eq, Debug)]
