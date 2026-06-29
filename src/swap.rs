@@ -366,6 +366,14 @@ pub enum Swap {
         side: Side,
         instr_id: u32,
     },
+    // tag 162 — Hadron (HADRoNbLovyqhCsocfYQYB7QdfCAAinN9HTePvBCVDQ8)
+    // 必须紧跟 Deriverse(=161)：Borsh 判别号 = 声明顺序 = 链上 tag 162。
+    // 字段 = 单个 bool isX（卖 base=true）；amount/minOut/expiration 由 route 上下文注入。
+    // 已 IDA 实证 jupiter-v6-0626 deserializer(handler@0x1fb00→loc_1F428): sub_12550=bool 读取器，
+    // 仅读 1 个 bool → 1 字段。Jupiter route 经 litesvm 字节级对账通过(raw-Step 池 5/5 EXACT)。
+    Hadron {
+        is_x: bool,
+    },
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Copy, Clone, PartialEq, Eq, Debug)]
