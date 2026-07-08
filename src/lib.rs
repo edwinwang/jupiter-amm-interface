@@ -72,6 +72,16 @@ pub enum FeeMode {
     Ultra,
 }
 
+/// 报价物理分类（信任层语义，见 `Amm::quote_class`）。
+#[derive(Default, Clone, Copy, Debug, PartialEq, Eq)]
+pub enum QuoteClass {
+    /// 储备确定性：给定链上状态，报价数学可精确复现
+    #[default]
+    Curve,
+    /// 报价依赖非储备输入（oracle/链下做市/内省），正确性只能实测
+    Quoted,
+}
+
 #[derive(Debug)]
 pub struct QuoteParams {
     pub amount: u64,
@@ -360,6 +370,16 @@ pub trait Amm {
     /// 分离 oracle 型（oracle 账户走 skip_arbitrage_accounts）不算暗池。
     fn is_darkpool(&self) -> bool {
         false
+    }
+
+    /// 报价物理分类（信任层语义，mistbot doc 42，2026-07-08）：按**报价函数的输入集**分。
+    /// - `Curve`：报价 = 确定性函数(池储备/挂单等链上状态)。给定镜像态数学可 byte-exact，
+    ///   错误只来自镜像陈旧 → 信任层零税。
+    /// - `Quoted`：报价依赖非储备输入（oracle/链下做市重写/内省逻辑），正确性无法静态
+    ///   保证，只能靠落地实测 → 信任层按实测偏差/类先验定价。
+    /// 与 is_darkpool 解耦：那是"账户写价"的路由/触发语义；本方法是信任语义。
+    fn quote_class(&self) -> QuoteClass {
+        QuoteClass::Curve
     }
 
     /// quote() 是否直接依赖 clock（slot/timestamp）：true = 账户不变报价也会随时间漂移，
