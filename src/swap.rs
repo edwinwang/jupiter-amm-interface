@@ -374,6 +374,12 @@ pub enum Swap {
     Hadron {
         is_x: bool,
     },
+    // tag 163 — BinaryFi (B72M6nyCLFgWiJtAN4naUTminMiTmyGcEqQHXwVeRdht)。unit variant（IDL 实证）。
+    BinaryFi,
+    // tag 164 — Metric。占位保判别号对齐，未接入。
+    Metric {
+        zero_for_one: bool,
+    },
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Copy, Clone, PartialEq, Eq, Debug)]
