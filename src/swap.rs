@@ -380,6 +380,22 @@ pub enum Swap {
     Metric {
         zero_for_one: bool,
     },
+    // ── 0721 轮 (jupiter-v6-0721.so, 链上 Jul 15 2026 升级) 新增 tag 165–168 ──
+    // program_id 均 IDA 字节实证(常量 dref 唯一 + vanity 自证)；字段布局仅 IDA 线索、
+    // 未 litesvm 字节对账，故空 {} 占位保判别号对齐，未接入——勿直接构造上链。
+    // 精确 borsh 字段待展开子反序列化器；证据链见 tmp/jupiter/swap_enum_diff_0721.md。
+    // tag 165 — JupiterLendDexSwap (jupZ4m2GqUCJ5iueMfzQf8khFfH31d4XAQt3RzCT9Vd，复用 Jupiter Lend)
+    // deser@0x1F590: 枚举判别(0x84–0x86) + sub_0x206B8；字段待对账。
+    JupiterLendDexSwap {},
+    // tag 166 — Gatorswap (gatorLx9aC1e5ZWAXscv5QRKiLXnLPLXjftVc81h1Hr)
+    // deser@0x1FCD0: index(<4) + 两字段(sub_0x18C128)；字段待对账。
+    Gatorswap {},
+    // tag 167 — Flint (FLiNTXPwppyoJabCoxc2uiiRygAHpmMXajiDXo2Ub1z)
+    // deser@0x1FBA8: bool taker_buy/is_global + index(<4)；字段待对账。
+    Flint {},
+    // tag 168 — Denali (DNL1tgEj3nJovHw9jtyCCQD3arssCJzkmpDizknwzey4)
+    // deser@0x1FA48: 两枚举判别(0x99–0x9f / 0x87–0x88) + 子反序列化器；字段待对账。
+    Denali {},
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Copy, Clone, PartialEq, Eq, Debug)]
