@@ -7,6 +7,14 @@ pub enum Side {
     Ask,
 }
 
+/// tag 171 SanctumSols 的子枚举（IDL 0807；未 binary 复核）
+#[derive(BorshSerialize, BorshDeserialize, Copy, Clone, Debug, PartialEq)]
+pub enum SanctumSolsSwapType {
+    Mint,
+    Claim,
+    ClaimHolding,
+}
+
 #[derive(BorshSerialize, BorshDeserialize, Copy, Clone, Debug, PartialEq)]
 pub enum HyloSwapType {
     MintStable,
@@ -381,21 +389,44 @@ pub enum Swap {
         zero_for_one: bool,
     },
     // ── 0721 轮 (jupiter-v6-0721.so, 链上 Jul 15 2026 升级) 新增 tag 165–168 ──
-    // program_id 均 IDA 字节实证(常量 dref 唯一 + vanity 自证)；字段布局仅 IDA 线索、
-    // 未 litesvm 字节对账，故空 {} 占位保判别号对齐，未接入——勿直接构造上链。
-    // 精确 borsh 字段待展开子反序列化器；证据链见 tmp/jupiter/swap_enum_diff_0721.md。
+    // program_id 均 IDA 字节实证(常量 dref 唯一 + vanity 自证)。字段布局 0807 按 IDL 补齐
+    // (此前是空 {} 占位)，**仅 IDL 来源、未 litesvm 字节对账**，未接入——勿直接构造上链。
+    // ⚠ 其中两处 IDL 与 0721 IDA 线索冲突，以链上 binary 为准的复核未做（见各 tag 注释）：
+    // 证据链 tmp/jupiter/swap_enum_diff_0721.md。
     // tag 165 — JupiterLendDexSwap (jupZ4m2GqUCJ5iueMfzQf8khFfH31d4XAQt3RzCT9Vd，复用 Jupiter Lend)
-    // deser@0x1F590: 枚举判别(0x84–0x86) + sub_0x206B8；字段待对账。
-    JupiterLendDexSwap {},
+    // ⚠ IDL 给 bool swap0to1；0721 deser@0x1F590 读到的是枚举判别(0x84–0x86)+sub_0x206B8 → 冲突待判。
+    JupiterLendDexSwap {
+        swap0to1: bool,
+    },
     // tag 166 — Gatorswap (gatorLx9aC1e5ZWAXscv5QRKiLXnLPLXjftVc81h1Hr)
-    // deser@0x1FCD0: index(<4) + 两字段(sub_0x18C128)；字段待对账。
-    Gatorswap {},
+    // deser@0x1FCD0: index(<4) + 两字段(sub_0x18C128)。
+    Gatorswap {
+        base_to_quote: bool,
+    },
     // tag 167 — Flint (FLiNTXPwppyoJabCoxc2uiiRygAHpmMXajiDXo2Ub1z)
-    // deser@0x1FBA8: bool taker_buy/is_global + index(<4)；字段待对账。
-    Flint {},
+    // deser@0x1FBA8 读到 bool taker_buy/is_global；字段序按 IDL(is_global 在前)。
+    Flint {
+        is_global: bool,
+        taker_buy: bool,
+    },
     // tag 168 — Denali (DNL1tgEj3nJovHw9jtyCCQD3arssCJzkmpDizknwzey4)
-    // deser@0x1FA48: 两枚举判别(0x99–0x9f / 0x87–0x88) + 子反序列化器；字段待对账。
-    Denali {},
+    // ⚠ IDL 给单个 bool base_to_quote；0721 deser@0x1FA48 读到两枚举判别(0x99–0x9f / 0x87–0x88)
+    // + 子反序列化器 → 冲突待判。
+    Denali {
+        base_to_quote: bool,
+    },
+    // ── 0807 轮 (链上 Aug 2026 升级) 新增 tag 169–171 ──
+    // 来源 = idls/jupiter.json（用户 0807 更新）；**未做 binary 复核**，未接入——勿直接构造上链。
+    // tag 169 — PerenaStarV2Deposit。IDL 无字段。
+    PerenaStarV2Deposit,
+    // tag 170 — PerenaStarV2WithdrawFromExternal。
+    PerenaStarV2WithdrawFromExternal {
+        external_liquidity_source: u8,
+    },
+    // tag 171 — SanctumSols。
+    SanctumSols {
+        swap_type: SanctumSolsSwapType,
+    },
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Copy, Clone, PartialEq, Eq, Debug)]
