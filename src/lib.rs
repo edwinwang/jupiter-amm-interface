@@ -91,6 +91,19 @@ pub struct QuoteParams {
     pub fee_mode: FeeMode,
 }
 
+/// 遍历型 AMM（bin/tick array 行走）在 `quote()` 里顺带产出的执行提示。
+///
+/// 为什么挂在 `Quote` 上而不是让 tx 构建期再算：这两个量出自**同一次遍历**，
+/// 报价时已经算完。重算不只是浪费，还不自洽——各自 `state.load()` 可能取到不同快照，
+/// 于是挂载数与 CU limit 会对应**不同的遍历**。算一次，带下来。
+#[derive(Debug, Default, Clone, Copy)]
+pub struct ExecHint {
+    /// 本笔该请求的 compute unit（已含安全余量，由 AMM 自己的标定模型给出）
+    pub cu: u32,
+    /// 本笔实际需要挂载的动态账户数（bin array / tick array）
+    pub dynamic_accounts: u8,
+}
+
 #[derive(Debug, Default, Clone, Copy)]
 pub struct Quote {
     pub in_amount: u64,
@@ -98,6 +111,8 @@ pub struct Quote {
     pub fee_amount: u64,
     pub fee_mint: Pubkey,
     pub fee_pct: Decimal,
+    /// 遍历型 AMM 填；其余恒 `None`（tx 构建回落 per-label q95 与全挂载，即旧行为）
+    pub exec_hint: Option<ExecHint>,
 }
 
 pub type QuoteMintToReferrer = HashMap<Pubkey, Pubkey, ahash::RandomState>;
@@ -121,6 +136,10 @@ pub struct SwapParams<'a, 'b> {
     /// Instead of returning the relevant Err, replace dynamic accounts with the default Pubkey
     /// This is useful for crawling market with no tick array
     pub missing_dynamic_accounts_as_default: bool,
+    /// 选路阶段那次 `quote()` 产出的执行提示（mistbot 0811 加）。
+    /// `Some` ⇒ 遍历型 AMM 直接按 `dynamic_accounts` 挂载，**不再重跑报价**。
+    /// `None` ⇒ 全挂载（旧行为）。
+    pub exec_hint: Option<ExecHint>,
 }
 
 impl SwapParams<'_, '_> {
@@ -324,6 +343,7 @@ pub trait Amm {
     fn get_accounts_len(&self) -> usize {
         32 // Default to a near whole legacy transaction to penalize no implementation
     }
+
 
     /// The identifier of the underlying liquidity
     ///
