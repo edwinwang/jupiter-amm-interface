@@ -7,6 +7,14 @@ pub enum Side {
     Ask,
 }
 
+/// tag 155 BisonFiPredict 的 side（IDL 0817 权威：Yes/No，非 Bid/Ask）。
+/// 判别号宽度与 `Side` 相同，但语义不同，勿混用。
+#[derive(BorshSerialize, BorshDeserialize, Copy, Clone, Debug, PartialEq)]
+pub enum BisonFiPredictSide {
+    Yes,
+    No,
+}
+
 /// tag 171 SanctumSols 的子枚举（IDL 0807；未 binary 复核）
 #[derive(BorshSerialize, BorshDeserialize, Copy, Clone, Debug, PartialEq)]
 pub enum SanctumSolsSwapType {
@@ -40,12 +48,34 @@ pub enum CandidateSwap {
         swap_id: u64,
         is_base_to_quote: bool,
     },
+    // ── 判别号 3–11：IDL 0817 权威补齐（此前本地只有前 3 项，遇 tag≥3 会反序列化失败）──
+    RaydiumV2,
+    RaydiumClmm,
+    Whirlpool {
+        a_to_b: bool,
+    },
+    ZeroFi,
+    BisonFiV2 {
+        a_to_b: bool,
+    },
+    GoonFiV2 {
+        is_bid: bool,
+    },
+    GoonFiV3 {
+        is_bid: bool,
+    },
+    WhirlpoolV2 {
+        a_to_b: bool,
+        remaining_accounts_info: Option<RemainingAccountsInfo>,
+    },
+    ZeroFiSwapV2,
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, PartialEq)]
 pub struct CandidateSwapWithBps {
     pub candidate_swap: CandidateSwap,
-    pub bps: u16,
+    // IDL 0817 权威 = u32（此前本地写 u16，少 2 字节，会整体错位）。
+    pub bps: u32,
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, PartialEq)]
@@ -352,7 +382,8 @@ pub enum Swap {
     },
     ZeroFiSwapV2,
     BisonFiPredict {
-        side: Side,
+        // IDL 0817 权威：BisonFiPredictSide(Yes/No)，此前本地误用 Side(Bid/Ask)。
+        side: BisonFiPredictSide,
         is_buy: bool,
     },
     ByrealDynamicV3,
