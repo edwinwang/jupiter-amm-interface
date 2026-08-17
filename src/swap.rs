@@ -427,6 +427,23 @@ pub enum Swap {
     SanctumSols {
         swap_type: SanctumSolsSwapType,
     },
+    // ── 0817 轮 (jupiter-v6 链上 Aug 13 2026 升级, deploy_slot 438982144) 新增 tag 172–176 ──
+    // 来源 = idls/jupiter.json（用户 0817 更新）；变体名与出现顺序另有 .so strings diff 交叉印证
+    // (mistbot tmp/jupiter/swap_enum_diff_0817.md)，但 **tag 值与字段布局未做 binary 穷举**，
+    // 未接入——勿直接构造上链。
+    // tag 172 — HyloV2。子枚举复用 Hylo(tag 132) 的 HyloSwapType。
+    HyloV2 {
+        swap_type: HyloSwapType,
+    },
+    // tag 173 — SanctumPamm。IDL 无字段。
+    SanctumPamm,
+    // tag 174 — Archer。
+    Archer {
+        side: Side,
+    },
+    // tag 175/176 — Trench 包装买/卖。IDL 无字段。
+    TrenchWrappedBuy,
+    TrenchWrappedSell,
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Copy, Clone, PartialEq, Eq, Debug)]
